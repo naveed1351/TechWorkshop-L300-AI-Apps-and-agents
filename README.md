@@ -6,6 +6,33 @@ This lab teaches you how to design and build AI applications and agents using Mi
 
 The step by step instructions for this lab can be found in the [AI Apps and agents guide](https://microsoft.github.io/TechWorkshop-L300-AI-Apps-and-agents).
 
+## Troubleshooting
+
+### Azure App Service Deployment - Cosmos DB Authentication Error
+
+If you encounter a **503 error** after deploying the web app to Azure App Service, and the container logs show:
+
+```
+azure.cosmos.exceptions.CosmosHttpResponseError: (Unauthorized) Local Authorization is disabled. Use an AAD token to authorize all requests.
+```
+
+This means Cosmos DB has local (key-based) authentication disabled. To fix this:
+
+1. **Enable Local Authentication on Cosmos DB:**
+   ```bash
+   az resource update --ids "/subscriptions/<your-subscription-id>/resourceGroups/<your-resource-group>/providers/Microsoft.DocumentDB/databaseAccounts/<your-cosmosdb-account>" --set properties.disableLocalAuth=false
+   ```
+
+2. **Restart the App Service:**
+   ```bash
+   az webapp restart --name <your-app-name> --resource-group <your-resource-group>
+   ```
+
+Alternatively, you can enable local authentication via the Azure Portal:
+1. Navigate to your Cosmos DB account
+2. Go to **Settings** → **Keys**
+3. Enable **Local Authentication**
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a

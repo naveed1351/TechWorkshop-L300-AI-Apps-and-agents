@@ -25,6 +25,9 @@ EMBEDDING_API_VERSION = os.environ.get("embedding_api_version")
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.WARNING)
 
+# Create a credential for Entra ID authentication
+_azure_credential = DefaultAzureCredential()
+
 
 def get_cosmos_client(endpoint: str | None, key: str | None = None):
     if not endpoint:
@@ -83,14 +86,17 @@ def ensure_string_ids(item: dict[str, Any]) -> dict[str, Any]:
 
 def get_request_embedding(text: str) -> list[float] | None:
     """Call embedding endpoint and return the embedding vector or None on failure."""
-    if not EMBEDDING_ENDPOINT or not EMBEDDING_DEPLOYMENT or not EMBEDDING_API_KEY or not EMBEDDING_API_VERSION:
+    if not EMBEDDING_ENDPOINT or not EMBEDDING_DEPLOYMENT or not EMBEDDING_API_VERSION:
         logger.error("Embedding env vars not fully set; failing embedding generation.")
         return None
 
     url = EMBEDDING_ENDPOINT.rstrip("/") + f"/openai/deployments/{EMBEDDING_DEPLOYMENT}/embeddings?api-version={EMBEDDING_API_VERSION}"
+    
+    # Use Entra ID authentication
+    token = _azure_credential.get_token("https://cognitiveservices.azure.com/.default")
     headers = {
         "Content-Type": "application/json",
-        "api-key": EMBEDDING_API_KEY,
+        "Authorization": f"Bearer {token.token}",
     }
     payload = {"input": text}
 
