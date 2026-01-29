@@ -1,0 +1,45 @@
+name: Deploy Handoff Service Agent
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/app/agents/handoffAgent_initializer.py'
+      - 'src/prompts/HandoffAgentPrompt.txt'
+      - 'src/services/handoff_service.py'
+      - '.github/workflows/deploy-handoff-agent.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy-handoff-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create .env file from secret
+        run: 'echo "$ENV" > src/.env'
+        shell: bash
+        env:
+          ENV: ${{ secrets.ENV }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r src/requirements.txt
+
+      - name: Login via Azure CLI
+        uses: azure/login@v2.1.1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Run handoff agent initializer
+        run: |
+          cd src/
+          python app/agents/handoffAgent_initializer.py
