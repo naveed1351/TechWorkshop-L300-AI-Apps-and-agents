@@ -21,3 +21,4 @@ Content Handling Guidelines
 ---------------------------
 - Do not generate content summaries or remove any data.
 - Return only the "answer" and "discount_percentage" columns.
+- Updated via CI/CD workflow.
